@@ -4,8 +4,8 @@
 # Note to self:
 #   swaymsg 'for_window [app_id = "org.matplotlib.*"] floating enable'
 
+from   enum import IntEnum
 import logging
-import matplotlib.figure as figure
 import matplotlib.axes as axes
 import matplotlib.image as image
 import matplotlib.patches as patches
@@ -37,10 +37,10 @@ def img_grayscale(img: np.ndarray) -> np.ndarray:
 
 
 def img_binarize(img_gray: np.ndarray, thresh_scale: float = 1.0) -> np.ndarray:
-    thresh = ski.filters.threshold_otsu(img_gray)
+    thresh: float = ski.filters.threshold_otsu(img_gray)
     thresh *= thresh_scale
-    img_bin = img_gray < thresh
-    return img_bin
+    mask = img_gray < thresh
+    return mask
 
 
 def img_morpho(mask: np.ndarray, thresh_hole: int, thresh_object: int) -> np.ndarray:
@@ -54,33 +54,40 @@ def img_centroid(mask: np.ndarray) -> tuple[float, float]:
     return centroid[1], centroid[0]
 
 
-def img_process(img: np.ndarray) -> tuple[np.ndarray, tuple[float, float]]:
+def img_process(img: np.ndarray, img_mode: ImgMode) \
+    -> tuple[np.ndarray, tuple[float, float]]:
+    pupil_center = (float('nan'), float('nan'))
+    if img_mode == ImgMode.RAW: return (img, pupil_center)
     img = img_grayscale(img)
+    if img_mode == ImgMode.GRAYSCALED: return (img, pupil_center)
     img = img_binarize(img, 0.35) # TODO unhardcode
+    if img_mode == ImgMode.BINARIZED: return (img, pupil_center)
     img = img_morpho(img, thresh_hole=64, thresh_object=1024) # TODO
     pupil_center = img_centroid(img)
     return (img, pupil_center)
 
 
-def img_plot(
-    img_path: str, img_title: str,
-    plot_img: image.AxesImage | None, plot_fig: figure.Figure, plot_axes: axes.Axes
-) -> image.AxesImage:
+def img_plot(img_path: str, img_title: str, img_mode: ImgMode, plot_axes: axes.Axes):
     img_raw = image.imread(img_path)
-    img, pupil_center = img_process(img_raw)
+    img, pupil_center = img_process(img_raw, img_mode)
 
     plot_axes.set_title(img_title)
-    if plot_img is None:
-        plot_img = plot_axes.imshow(img_raw)
-    else:
-        plot_img.set_data(img_raw)
-        plot_axes.figure.canvas.draw_idle()
+    plot_axes.imshow(img_raw if img_mode == ImgMode.RESULT else img)
+    plot_axes.figure.canvas.draw_idle()
 
     for patch in plot_axes.patches:
         patch.remove()
     plot_axes.add_patch(
         patches.Circle(pupil_center, radius=2, color='red', fill=True))
-    return plot_img
+
+
+class ImgMode(IntEnum):
+    RAW = 0
+    GRAYSCALED = 1
+    BINARIZED = 2
+    MORPHOED = 3
+    RESULT = 4
+    _COUNT = 5
 
 
 def main():
@@ -90,24 +97,28 @@ def main():
         sys.exit(1)
 
     plot_fig, plot_axes = plot.subplots()
-    plot_img: image.AxesImage | None = None
     plot_axes.axis('off')
 
     img_index = 0
+    img_mode: ImgMode = ImgMode.RAW
     img_titler = lambda i: f"[{i + 1}/{len(img_paths)}] {img_paths[i]}"
-    plot_img = img_plot(img_paths[0], img_titler(0), plot_img, plot_fig, plot_axes)
+    img_plot(img_paths[0], img_titler(0), img_mode, plot_axes)
 
     def key_press_handle(event):
         nonlocal img_index
-        key_bindings = { 'left': -1, 'right': +1 }
-        if event.key not in key_bindings:
-            return
-        img_index += key_bindings[event.key]
-        img_index %= len(img_paths)
+        nonlocal img_mode
+        key = event.key
+        print(key)
+        if   key == 'left':  img_index = (img_index - 1) % len(img_paths)
+        elif key == 'right': img_index = (img_index + 1) % len(img_paths)
+        elif key == ' ':       img_mode = ImgMode((img_mode + 1) % int(ImgMode._COUNT))
+        elif key == 'ctrl+ ': img_mode = ImgMode((img_mode - 1) % int(ImgMode._COUNT))
+        else: return
 
         img_path = img_paths[img_index]
         img_title = img_titler(img_index)
-        img_plot(img_path, img_title, plot_img, plot_fig, plot_axes)
+        logger.warning(img_mode)
+        img_plot(img_path, img_title, img_mode, plot_axes)
 
     plot_fig.canvas.mpl_connect('key_press_event', key_press_handle)
     plot.show()
