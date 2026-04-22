@@ -1,0 +1,4 @@
+.venv
+assets/*
+!assets/README.md
+docs
