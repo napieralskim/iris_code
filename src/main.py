@@ -3,6 +3,7 @@
 
 # Note to self:
 #   swaymsg 'for_window [app_id = "org.matplotlib.*"] floating enable'
+#   python src/main.py assets/mmu-iris-dataset/14/left/liujwl2.bmp # A tricky one!
 
 from   enum import IntEnum
 import logging
@@ -36,16 +37,15 @@ def img_grayscale(img: np.ndarray) -> np.ndarray:
     return gray
 
 
-def img_binarize(img_gray: np.ndarray, thresh_scale: float = 1.0) -> np.ndarray:
-    thresh: float = ski.filters.threshold_otsu(img_gray)
-    thresh *= thresh_scale
-    mask = img_gray < thresh
-    return mask
+def img_binarize(img_gray: np.ndarray, thresh_pupil_rel: float) -> np.ndarray:
+    mean = np.mean(img_gray)
+    thresh_pupil = mean / thresh_pupil_rel
+    return img_gray < thresh_pupil
 
 
-def img_morpho(mask: np.ndarray, thresh_hole: int, thresh_object: int) -> np.ndarray:
-    mask_new = ski.morphology.remove_small_holes(mask, max_size=thresh_hole)
-    mask_new = ski.morphology.remove_small_objects(mask_new, max_size=thresh_object)
+def img_morpho(mask: np.ndarray, hole_size_max: int,  disk_radius: float) -> np.ndarray:
+    mask_new = ski.morphology.remove_small_holes(mask, max_size=hole_size_max)
+    mask_new = ski.morphology.isotropic_opening(mask_new, disk_radius)
     return mask_new
 
 
@@ -60,9 +60,9 @@ def img_process(img: np.ndarray, img_mode: ImgMode) \
     if img_mode == ImgMode.RAW: return (img, pupil_center)
     img = img_grayscale(img)
     if img_mode == ImgMode.GRAYSCALED: return (img, pupil_center)
-    img = img_binarize(img, 0.35) # TODO unhardcode
+    img = img_binarize(img, 3.5) # TODO unhardcode
     if img_mode == ImgMode.BINARIZED: return (img, pupil_center)
-    img = img_morpho(img, thresh_hole=64, thresh_object=1024) # TODO
+    img = img_morpho(img, hole_size_max=500, disk_radius=20) # TODO
     pupil_center = img_centroid(img)
     return (img, pupil_center)
 
@@ -108,16 +108,16 @@ def main():
         nonlocal img_index
         nonlocal img_mode
         key = event.key
-        print(key)
         if   key == 'left':  img_index = (img_index - 1) % len(img_paths)
         elif key == 'right': img_index = (img_index + 1) % len(img_paths)
-        elif key == ' ':       img_mode = ImgMode((img_mode + 1) % int(ImgMode._COUNT))
+        elif key == 'shift+left':  img_index = (img_index - 10) % len(img_paths)
+        elif key == 'shift+right': img_index = (img_index + 10) % len(img_paths)
+        elif key == ' ':      img_mode = ImgMode((img_mode + 1) % int(ImgMode._COUNT))
         elif key == 'ctrl+ ': img_mode = ImgMode((img_mode - 1) % int(ImgMode._COUNT))
         else: return
 
         img_path = img_paths[img_index]
         img_title = img_titler(img_index)
-        logger.warning(img_mode)
         img_plot(img_path, img_title, img_mode, plot_axes)
 
     plot_fig.canvas.mpl_connect('key_press_event', key_press_handle)
