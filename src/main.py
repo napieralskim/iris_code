@@ -49,9 +49,19 @@ def img_morpho(mask: np.ndarray, hole_size_max: int,  disk_radius: float) -> np.
     return mask_new
 
 
-def img_centroid(mask: np.ndarray) -> tuple[float, float]:
+def img_center_by_centroid(mask: np.ndarray) -> tuple[float, float]:
     centroid = np.argwhere(mask == 1).mean(axis=0)
     return centroid[1], centroid[0]
+
+
+def img_center_by_projection(mask: np.ndarray) -> tuple[float, float]:
+    col_sums = np.sum(mask, axis=0)
+    row_sums = np.sum(mask, axis=1)
+
+    x_c = np.argmax(col_sums)
+    y_c = np.argmax(row_sums)
+
+    return (float(x_c), float(y_c))
 
 
 def img_process(img: np.ndarray, img_mode: ImgMode) \
@@ -63,7 +73,8 @@ def img_process(img: np.ndarray, img_mode: ImgMode) \
     img = img_binarize(img, 3.5) # TODO unhardcode
     if img_mode == ImgMode.BINARIZED: return (img, pupil_center)
     img = img_morpho(img, hole_size_max=500, disk_radius=20) # TODO
-    pupil_center = img_centroid(img)
+    pupil_center = img_center_by_centroid(img)
+    # pupil_center = img_center_by_projection(img)
     return (img, pupil_center)
 
 
