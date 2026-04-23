@@ -2,3 +2,4 @@
 assets/*
 !assets/README.md
 docs
+**/__pycache__
