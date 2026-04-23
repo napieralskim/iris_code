@@ -53,3 +53,9 @@ def img_center_by_projection(mask: np.ndarray) -> tuple[float, float]:
     y_c = np.argmax(row_sums)
 
     return (float(x_c), float(y_c))
+
+
+def img_radius_by_area(mask: np.ndarray) -> float:
+    area = np.sum(mask)
+    radius = np.sqrt(area / np.pi)
+    return radius

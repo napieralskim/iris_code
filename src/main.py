@@ -1,5 +1,5 @@
 # Example usage:
-#   python src/main.py assets/mmu-iris-dataset/1/left/aeval1.bmp
+#   python src/main.py assets/mmu-iris-dataset/*/*/*.bmp
 
 # NOTES TO SELF:
 # Floating window on swaywm:
@@ -7,8 +7,9 @@
 # Generate `Config` classes:
 #   datamodel-codegen --input config.yaml --input-file-type yaml --output src/config.py --parent-scoped-naming --class-name Config
 # Hard ones:
-#   57, 58, 71, 73, 136, 272, 334
-#   91 eyebrow
+#   448, 98, 389, 339 => reflection hole not fully enclosed
+#   435 => dark eyebrow in the corner
+#   298, 299 => eyelashes cover the pupil
 
 
 import yaml

@@ -38,7 +38,7 @@ def eye_center(img: np.ndarray, cfg: ConfigEye) -> EyeCentered:
     prev = eye_morphoed(img, cfg)
     methods = {
         "centroid":   lambda mask: img_center_by_centroid(mask),
-        "projection": lambda mask: img_center_by_projection(mask)
+        "projection": lambda mask: img_center_by_projection(mask),
     }
     if cfg.center.method not in methods:
         logger.fatal(f"eye_center: Method `{cfg.center.method}` not supported.")
@@ -47,16 +47,29 @@ def eye_center(img: np.ndarray, cfg: ConfigEye) -> EyeCentered:
     return EyeCentered(prev.pupil_mask, prev.iris_mask, pupil_center)
 
 
+def eye_radius_pupil(img: np.ndarray, cfg: ConfigEye) -> EyeRadiusPupil:
+    prev = eye_center(img, cfg)
+    methods = {
+        "area": lambda mask: img_radius_by_area(mask),
+    }
+    if cfg.radius_pupil.method not in methods:
+        logger.fatal(f"eye_center: Method `{cfg.center.method}` not supported.")
+        sys.exit(1)
+    pupil_radius = methods[cfg.radius_pupil.method](prev.pupil_mask)
+    return EyeRadiusPupil(prev.pupil_mask, prev.iris_mask, prev.pupil_center, pupil_radius)
+
+
 def eye_result(img: np.ndarray, cfg: ConfigEye) -> EyeResult:
-    prev = eye_center(img, cfg) # TODO should invoke last step
-    return EyeResult(img, prev.pupil_mask, prev.iris_mask, prev.pupil_center)
+    prev = eye_radius_pupil(img, cfg) # TODO should invoke last step
+    return EyeResult(img, prev.pupil_center, prev.pupil_radius)
 
 
 def eye_main(img: np.ndarray, cfg: ConfigEye, img_mode: ImgMode):
     match img_mode:
-        case ImgMode.RAW:        return eye_raw(img, cfg)
-        case ImgMode.GRAYSCALED: return eye_grayscaled(img, cfg)
-        case ImgMode.BINARIZED:  return eye_binarized(img, cfg)
-        case ImgMode.MORPHOED:   return eye_morphoed(img, cfg)
-        case ImgMode.CENTERED:   return eye_center(img, cfg)
-        case ImgMode.RESULT:     return eye_result(img, cfg)
+        case ImgMode.RAW:          return eye_raw(img, cfg)
+        case ImgMode.GRAYSCALED:   return eye_grayscaled(img, cfg)
+        case ImgMode.BINARIZED:    return eye_binarized(img, cfg)
+        case ImgMode.MORPHOED:     return eye_morphoed(img, cfg)
+        case ImgMode.CENTERED:     return eye_center(img, cfg)
+        case ImgMode.RADIUS_PUPIL: return eye_radius_pupil(img, cfg)
+        case ImgMode.RESULT:       return eye_result(img, cfg)

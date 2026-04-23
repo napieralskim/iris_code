@@ -11,13 +11,21 @@ eye:
         thresh_iris_rel: 1.5
     morpho:
         hole_size_max: 500
-        disk_radius: 20
+        disk_radius: 15
     center:
         method: "centroid"
+    radius-pupil:
+        method: "area"
+    radius-iris:
+        method: "profile-horizontal"
 plot:
     masks:
         color_pupil: [1.0, 0.0, 0.0]
         color_iris:  [0.0, 0.0, 1.0]
     center:
         radius: 2
+        color: "yellow"
+    radius-pupil:
+        color: "yellow"
+    radius-iris:
         color: "yellow"

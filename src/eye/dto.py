@@ -10,8 +10,9 @@ class ImgMode(IntEnum):
     BINARIZED  = 2
     MORPHOED   = 3
     CENTERED   = 4
-    RESULT     = 5
-    _COUNT     = 6
+    RADIUS_PUPIL   = 5
+    RESULT     = 6
+    _COUNT     = 7
 
 
 @dataclass
@@ -39,8 +40,14 @@ class EyeCentered:
     pupil_center: tuple[float, float]
 
 @dataclass
-class EyeResult:
-    img_orig:     np.ndarray
+class EyeRadiusPupil:
     pupil_mask:   np.ndarray
     iris_mask:    np.ndarray
     pupil_center: tuple[float, float]
+    pupil_radius: float
+
+@dataclass
+class EyeResult:
+    img_orig:     np.ndarray
+    pupil_center: tuple[float, float]
+    pupil_radius: float
