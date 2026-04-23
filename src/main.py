@@ -4,25 +4,25 @@
 # NOTES TO SELF:
 # Floating window on swaywm:
 #   swaymsg 'for_window [app_id = "org.matplotlib.*"] floating enable'
+# Generate `Config` classes:
+#   datamodel-codegen --input config.yaml --input-file-type yaml --output src/config.py --parent-scoped-naming --class-name Config
 # Hard ones:
 #   57, 58, 71, 73, 136, 272, 334
 #   91 eyebrow
 
 
+import yaml
+
+from   config import Config
 import logging
 import matplotlib.pyplot as plot
 from   eye.dto import ImgMode
 from   plot import plot_main
 import sys
-
-
 logger = logging.getLogger(__name__)
-logging.basicConfig(
-    level = logging.INFO, # TODO
-    format = "%(levelname)s: %(message)s")
 
 
-def main():
+def main(cfg: Config):
     img_paths = sys.argv[1:]
     if len(img_paths) < 1:
         logger.fatal("No image specified!")
@@ -34,7 +34,7 @@ def main():
     img_index = 0
     img_mode: ImgMode = ImgMode.RAW
     img_titler = lambda i: f"[{i + 1}/{len(img_paths)}] {img_paths[i]}"
-    plot_main(img_paths[0], img_titler(0), img_mode, plot_axes)
+    plot_main(plot_axes, cfg, img_paths[0], img_titler(0), img_mode)
 
     def key_press_handle(event):
         nonlocal img_index
@@ -50,10 +50,14 @@ def main():
 
         img_path = img_paths[img_index]
         img_title = img_titler(img_index)
-        plot_main(img_path, img_title, img_mode, plot_axes)
+        plot_main(plot_axes, cfg, img_path, img_title, img_mode)
 
     plot_fig.canvas.mpl_connect('key_press_event', key_press_handle)
     plot.show()
 
+
 if __name__ == "__main__":
-    main()
+    with open("config.yaml", "r") as f:
+        config_raw = yaml.safe_load(f)
+    config = Config.model_validate(config_raw)
+    main(config)

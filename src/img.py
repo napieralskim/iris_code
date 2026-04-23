@@ -6,11 +6,13 @@ import skimage as ski
 logger = logging.getLogger(__name__)
 
 
-def img_grayscale(img: np.ndarray) -> np.ndarray:
-    wr = 0.299
-    wg = 0.587
-    wb = 0.114
-
+def img_grayscale(
+    img: np.ndarray,
+    wr: float = 0.299,
+    wg: float = 0.587,
+    wb: float = 0.114
+) -> np.ndarray:
+    
     if len(img.shape) != 3:
         logger.info(f"grayscale: Image is not three-dimensional. Skipping.")
         return img
