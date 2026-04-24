@@ -25,8 +25,8 @@ eye:
         radius_rel_min: 1.2
         radius_rel_max: 3.0
     unwrap:
-        res_theta: 360
-        res_r: 60
+        res_theta: 128
+        res_r: 32
     daugman:
         gabor:
             length: 35

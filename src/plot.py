@@ -1,12 +1,13 @@
+from   config import Config, ConfigPlot
+from   eye.init import eye_main
+from   eye.dto import *
 from   matplotlib.axes import Axes
 from   matplotlib.figure import Figure
 from   matplotlib.gridspec import GridSpec
 import matplotlib.image as mpimg
 import matplotlib.patches as mppatches
 import numpy as np
-from   config import Config, ConfigPlot
-from   eye.init import eye_main
-from   eye.dto import *
+from   pathlib import Path
 
 
 def plot_masks(ax: Axes, cfg: ConfigPlot, mask_pupil: np.ndarray, mask_iris: np.ndarray) -> None:

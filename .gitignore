@@ -3,4 +3,5 @@
 assets/*
 !assets/README.md
 docs
+output
 **/__pycache__
