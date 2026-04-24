@@ -35,6 +35,7 @@ def main(cfg: Config):
     img_index = 0
     img_mode: ImgMode = ImgMode.RAW
     img_titler = lambda i: f"[{i + 1}/{len(img_paths)}] {img_paths[i]}"
+    plot.figure(plot_fig) # TODO
     plot_main(plot_axes, cfg, img_paths[0], img_titler(0), img_mode)
 
     def key_press_handle(event):
@@ -51,6 +52,7 @@ def main(cfg: Config):
 
         img_path = img_paths[img_index]
         img_title = img_titler(img_index)
+        plot.figure(plot_fig) # TODO
         plot_main(plot_axes, cfg, img_path, img_title, img_mode)
 
     plot_fig.canvas.mpl_connect('key_press_event', key_press_handle)

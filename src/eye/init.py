@@ -25,13 +25,15 @@ def eye_binarized(img: np.ndarray, cfg: ConfigEye) -> EyeBinarized:
     return EyeBinarized(mask_pupil, mask_iris)
 
 
-# TODO only pupil for now
 def eye_morphoed(img: np.ndarray, cfg: ConfigEye) -> EyeMorphoed:
     prev = eye_binarized(img, cfg)
     pupil_mask_new = img_morpho(prev.pupil_mask,
-        cfg.morpho.hole_size_max,
-        cfg.morpho.disk_radius)
-    return EyeMorphoed(pupil_mask_new, prev.iris_mask)
+        cfg.morpho_pupil.hole_size_max,
+        cfg.morpho_pupil.disk_radius)
+    iris_mask_rew = img_morpho(prev.iris_mask,
+        cfg.morpho_iris.hole_size_max,
+        cfg.morpho_iris.disk_radius)
+    return EyeMorphoed(pupil_mask_new, iris_mask_rew)
 
 
 def eye_center(img: np.ndarray, cfg: ConfigEye) -> EyeCentered:
@@ -53,23 +55,46 @@ def eye_radius_pupil(img: np.ndarray, cfg: ConfigEye) -> EyeRadiusPupil:
         "area": lambda mask: img_radius_by_area(mask),
     }
     if cfg.radius_pupil.method not in methods:
-        logger.fatal(f"eye_center: Method `{cfg.center.method}` not supported.")
+        logger.fatal(f"eye_radius_pupil: Method `{cfg.center.method}` not supported.")
         sys.exit(1)
     pupil_radius = methods[cfg.radius_pupil.method](prev.pupil_mask)
     return EyeRadiusPupil(prev.pupil_mask, prev.iris_mask, prev.pupil_center, pupil_radius)
 
 
+def eye_radius_both(img: np.ndarray, cfg: ConfigEye) -> EyeRadiusBoth:
+    gray = img_grayscale(img, cfg.grayscale.weight_r, cfg.grayscale.weight_g, cfg.grayscale.weight_b)
+    prev = eye_radius_pupil(img, cfg)
+    methods = {
+        "profile_horizontal": lambda mask: img_radius_by_profile_horizontal(
+            gray, prev.pupil_center, prev.pupil_radius,
+            cfg.radius_iris.radius_rel_min, cfg.radius_iris.radius_rel_max, cfg.radius_iris.sigma
+        ) 
+    }
+    if cfg.radius_iris.method not in methods:
+        logger.fatal(f"eye_radius_both: Method `{cfg.center.method}` not supported.")
+        sys.exit(1)
+    iris_radius = methods[cfg.radius_iris.method](prev.iris_mask)
+    return EyeRadiusBoth(prev.pupil_mask, prev.iris_mask, prev.pupil_center, prev.pupil_radius, iris_radius) # TODO these get very long, refactor?
+
+
 def eye_result(img: np.ndarray, cfg: ConfigEye) -> EyeResult:
-    prev = eye_radius_pupil(img, cfg) # TODO should invoke last step
-    return EyeResult(img, prev.pupil_center, prev.pupil_radius)
+    prev = eye_radius_both(img, cfg) # TODO should invoke last step
+    return EyeResult(img, prev.pupil_center, prev.pupil_radius, prev.iris_radius)
 
 
 def eye_main(img: np.ndarray, cfg: ConfigEye, img_mode: ImgMode):
-    match img_mode:
-        case ImgMode.RAW:          return eye_raw(img, cfg)
-        case ImgMode.GRAYSCALED:   return eye_grayscaled(img, cfg)
-        case ImgMode.BINARIZED:    return eye_binarized(img, cfg)
-        case ImgMode.MORPHOED:     return eye_morphoed(img, cfg)
-        case ImgMode.CENTERED:     return eye_center(img, cfg)
-        case ImgMode.RADIUS_PUPIL: return eye_radius_pupil(img, cfg)
-        case ImgMode.RESULT:       return eye_result(img, cfg)
+    stages = {
+        ImgMode.RAW:          eye_raw,
+        ImgMode.GRAYSCALED:   eye_grayscaled,
+        ImgMode.BINARIZED:    eye_binarized,
+        ImgMode.MORPHOED:     eye_morphoed,
+        ImgMode.CENTERED:     eye_center,
+        ImgMode.RADIUS_PUPIL: eye_radius_pupil,
+        ImgMode.RADIUS_BOTH:  eye_radius_both,
+        ImgMode.RESULT:       eye_result,
+    }
+    if img_mode in stages:
+        return stages[img_mode](img, cfg)
+    else:
+        logger.warning("eye_main: Unsupported `ImgMode`.")
+        return None

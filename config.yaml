@@ -8,16 +8,22 @@ eye:
         weight_b: 0.114
     binarize:
         thresh_pupil_rel: 3.5
-        thresh_iris_rel: 1.5
-    morpho:
+        thresh_iris_rel: 1.35
+    morpho_pupil:
         hole_size_max: 500
         disk_radius: 15
+    morpho_iris:
+        hole_size_max: 500
+        disk_radius: 20
     center:
         method: "centroid"
-    radius-pupil:
+    radius_pupil:
         method: "area"
-    radius-iris:
-        method: "profile-horizontal"
+    radius_iris:
+        method: "profile_horizontal"
+        sigma: 3
+        radius_rel_min: 1.2
+        radius_rel_max: 3.0
 plot:
     masks:
         color_pupil: [1.0, 0.0, 0.0]
@@ -25,7 +31,7 @@ plot:
     center:
         radius: 2
         color: "yellow"
-    radius-pupil:
+    radius_pupil:
         color: "yellow"
-    radius-iris:
+    radius_iris:
         color: "yellow"

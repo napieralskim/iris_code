@@ -60,12 +60,18 @@ def plot_main(axes: Axes, cfg_all: Config, img_path: str, img_title: str, img_mo
             plot_masks(axes, cfg, pupil_mask, iris_mask)
             plot_center(axes, cfg, pupil_center)
             plot_ring(axes, cfg, pupil_center, pupil_radius, cfg.radius_pupil.color)
-        case EyeResult(img_orig, pupil_center, pupil_radius):
+        case EyeRadiusBoth(pupil_mask, iris_mask, pupil_center, pupil_radius, iris_radius):
+            plot_masks(axes, cfg, pupil_mask, iris_mask)
+            plot_center(axes, cfg, pupil_center)
+            plot_ring(axes, cfg, pupil_center, pupil_radius, cfg.radius_pupil.color)
+            plot_ring(axes, cfg, pupil_center, iris_radius,  cfg.radius_iris.color)
+        case EyeResult(img_orig, pupil_center, pupil_radius, iris_radius):
             axes.imshow(img_orig)
             plot_center(axes, cfg, pupil_center)
             plot_ring(axes, cfg, pupil_center, pupil_radius, cfg.radius_pupil.color)
+            plot_ring(axes, cfg, pupil_center, iris_radius,  cfg.radius_iris.color)
         case _:
-            logger.warning("plot_main: Unsupported processing stage.")
+            logger.warning("plot_main: Unsupported `ImgMode`.")
 
     axes.set_title(img_title)
     axes.figure.canvas.draw_idle()
