@@ -12,7 +12,7 @@ class ImgMode(IntEnum):
     CENTERED     = 4
     RADIUS_PUPIL = 5
     RADIUS_BOTH  = 6
-    RESULT       = 7
+    UNWRAPPED    = 7
     _COUNT       = 8
 
 
@@ -56,8 +56,9 @@ class EyeRadiusBoth:
     iris_radius:  float
 
 @dataclass
-class EyeResult:
-    img_orig:     np.ndarray
-    pupil_center: CoordsF
-    pupil_radius: float
-    iris_radius:  float
+class EyeUnwrapped:
+    img_orig:       np.ndarray
+    pupil_center:   CoordsF
+    pupil_radius:   float
+    iris_radius:    float
+    iris_unwrapped: np.ndarray

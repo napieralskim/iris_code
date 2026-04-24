@@ -77,9 +77,10 @@ def eye_radius_both(img: np.ndarray, cfg: ConfigEye) -> EyeRadiusBoth:
     return EyeRadiusBoth(prev.pupil_mask, prev.iris_mask, prev.pupil_center, prev.pupil_radius, iris_radius) # TODO these get very long, refactor?
 
 
-def eye_result(img: np.ndarray, cfg: ConfigEye) -> EyeResult:
-    prev = eye_radius_both(img, cfg) # TODO should invoke last step
-    return EyeResult(img, prev.pupil_center, prev.pupil_radius, prev.iris_radius)
+def eye_unwrapped(img: np.ndarray, cfg: ConfigEye) -> EyeUnwrapped:
+    prev = eye_radius_both(img, cfg)
+    iris_unwrapped = img_unwrap(img, prev.pupil_center, prev.pupil_radius, prev.iris_radius, cfg.unwrap.res_theta, cfg.unwrap.res_r)
+    return EyeUnwrapped(img, prev.pupil_center, prev.pupil_radius, prev.iris_radius, iris_unwrapped)
 
 
 def eye_main(img: np.ndarray, cfg: ConfigEye, img_mode: ImgMode):
@@ -91,7 +92,7 @@ def eye_main(img: np.ndarray, cfg: ConfigEye, img_mode: ImgMode):
         ImgMode.CENTERED:     eye_center,
         ImgMode.RADIUS_PUPIL: eye_radius_pupil,
         ImgMode.RADIUS_BOTH:  eye_radius_both,
-        ImgMode.RESULT:       eye_result,
+        ImgMode.UNWRAPPED:    eye_unwrapped,
     }
     if img_mode in stages:
         return stages[img_mode](img, cfg)

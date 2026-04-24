@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Example usage:
 #   python src/main.py assets/mmu-iris-dataset/*/*/*.bmp
 
@@ -12,14 +14,15 @@
 #   298, 299 => eyelashes cover the pupil
 
 
-import yaml
-
 from   config import Config
 import logging
+import matplotlib as mp
 import matplotlib.pyplot as plot
+import matplotlib.gridspec as gridspec
 from   eye.dto import ImgMode
 from   plot import plot_main
 import sys
+import yaml
 logger = logging.getLogger(__name__)
 
 
@@ -36,7 +39,10 @@ def main(cfg: Config):
     img_mode: ImgMode = ImgMode.RAW
     img_titler = lambda i: f"[{i + 1}/{len(img_paths)}] {img_paths[i]}"
     plot.figure(plot_fig) # TODO
-    plot_main(plot_axes, cfg, img_paths[0], img_titler(0), img_mode)
+    plot_grid = gridspec.GridSpec(2, 1)
+    axes_main  = plot_fig.add_subplot(plot_grid[0, :])
+    axes_extra = plot_fig.add_subplot(plot_grid[1, :])
+    plot_main(axes_main, axes_extra, plot_grid, cfg, img_paths[0], img_titler(0), img_mode)
 
     def key_press_handle(event):
         nonlocal img_index
@@ -52,8 +58,7 @@ def main(cfg: Config):
 
         img_path = img_paths[img_index]
         img_title = img_titler(img_index)
-        plot.figure(plot_fig) # TODO
-        plot_main(plot_axes, cfg, img_path, img_title, img_mode)
+        plot_main(axes_main, axes_extra, plot_grid, cfg, img_path, img_title, img_mode)
 
     plot_fig.canvas.mpl_connect('key_press_event', key_press_handle)
     plot.show()
