@@ -70,8 +70,10 @@ def plot_main(ax: Axes, ax_extra: Axes, grid: GridSpec, cfg_all: Config, img_pat
             plot_center(ax, cfg, pupil_center)
             plot_ring(ax, cfg, pupil_center, pupil_radius, cfg.radius_pupil.color)
             plot_ring(ax, cfg, pupil_center, iris_radius,  cfg.radius_iris.color)
-        case EyeUnwrapped(img_orig, pupil_center, pupil_radius, iris_radius, img_iris) | \
-            EyeSplit(img_orig, pupil_center, pupil_radius, iris_radius, img_iris):
+        case \
+            EyeUnwrapped(img_orig, pupil_center, pupil_radius, iris_radius, img_iris) | \
+            EyeSplit    (img_orig, pupil_center, pupil_radius, iris_radius, img_iris) | \
+            EyeEncoded  (img_orig, pupil_center, pupil_radius, iris_radius, img_iris):
             ax.set_subplotspec(grid[0, :])
             ax_extra.set_visible(True)
 

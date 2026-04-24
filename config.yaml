@@ -27,6 +27,11 @@ eye:
     unwrap:
         res_theta: 360
         res_r: 60
+    daugman:
+        gabor:
+            length: 35
+            sigma: 4
+            frequency: 0.12
 plot:
     masks:
         color_pupil: [1.0, 0.0, 0.0]

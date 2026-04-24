@@ -90,8 +90,14 @@ def eye_split(img: np.ndarray, cfg: ConfigEye) -> EyeSplit:
         cfg.grayscale.weight_r,
         cfg.grayscale.weight_g,
         cfg.grayscale.weight_b)
-    iris_signals = daug_split_8(iris_gray)
+    iris_signals = daug_signals(iris_gray)
     return EyeSplit(img, prev.pupil_center, prev.pupil_radius, prev.iris_radius, iris_signals)
+
+
+def eye_encoded(img: np.ndarray, cfg: ConfigEye) -> EyeEncoded:
+    prev = eye_split(img, cfg)
+    iris_code = daug_code(prev.iris_signals, cfg.daugman)
+    return EyeEncoded(img, prev.pupil_center, prev.pupil_radius, prev.iris_radius, iris_code)
 
 
 def eye_main(img: np.ndarray, cfg: ConfigEye, img_mode: ImgMode):
@@ -105,6 +111,7 @@ def eye_main(img: np.ndarray, cfg: ConfigEye, img_mode: ImgMode):
         ImgMode.RADIUS_BOTH:  eye_radius_both,
         ImgMode.UNWRAPPED:    eye_unwrapped,
         ImgMode.SPLIT:        eye_split,
+        ImgMode.ENCODED:      eye_encoded,
     }
     if img_mode in stages:
         return stages[img_mode](img, cfg)
