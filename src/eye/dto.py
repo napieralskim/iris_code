@@ -13,7 +13,8 @@ class ImgMode(IntEnum):
     RADIUS_PUPIL = 5
     RADIUS_BOTH  = 6
     UNWRAPPED    = 7
-    _COUNT       = 8
+    SPLIT        = 8
+    _COUNT       = 9
 
 
 @dataclass
@@ -62,3 +63,11 @@ class EyeUnwrapped:
     pupil_radius:   float
     iris_radius:    float
     iris_unwrapped: np.ndarray
+
+@dataclass
+class EyeSplit:
+    img_orig:       np.ndarray
+    pupil_center:   CoordsF
+    pupil_radius:   float
+    iris_radius:    float
+    iris_signals:   np.ndarray

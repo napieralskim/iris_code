@@ -70,7 +70,8 @@ def plot_main(ax: Axes, ax_extra: Axes, grid: GridSpec, cfg_all: Config, img_pat
             plot_center(ax, cfg, pupil_center)
             plot_ring(ax, cfg, pupil_center, pupil_radius, cfg.radius_pupil.color)
             plot_ring(ax, cfg, pupil_center, iris_radius,  cfg.radius_iris.color)
-        case EyeUnwrapped(img_orig, pupil_center, pupil_radius, iris_radius, iris_unwrapped):
+        case EyeUnwrapped(img_orig, pupil_center, pupil_radius, iris_radius, img_iris) | \
+            EyeSplit(img_orig, pupil_center, pupil_radius, iris_radius, img_iris):
             ax.set_subplotspec(grid[0, :])
             ax_extra.set_visible(True)
 
@@ -79,7 +80,7 @@ def plot_main(ax: Axes, ax_extra: Axes, grid: GridSpec, cfg_all: Config, img_pat
             plot_ring(ax, cfg, pupil_center, pupil_radius, cfg.radius_pupil.color)
             plot_ring(ax, cfg, pupil_center, iris_radius,  cfg.radius_iris.color)
 
-            ax_extra.imshow(iris_unwrapped)
+            ax_extra.imshow(img_iris) # either the raw unwrapped iris or iris signals
         case _:
             logger.warning("plot_main: Unsupported `ImgMode`.")
 

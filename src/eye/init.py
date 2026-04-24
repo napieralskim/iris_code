@@ -1,4 +1,5 @@
 from   config import ConfigEye
+from   daug import *
 from   eye.dto import *
 import logging
 import sys
@@ -83,6 +84,16 @@ def eye_unwrapped(img: np.ndarray, cfg: ConfigEye) -> EyeUnwrapped:
     return EyeUnwrapped(img, prev.pupil_center, prev.pupil_radius, prev.iris_radius, iris_unwrapped)
 
 
+def eye_split(img: np.ndarray, cfg: ConfigEye) -> EyeSplit:
+    prev = eye_unwrapped(img, cfg)
+    iris_gray = img_grayscale(prev.iris_unwrapped,
+        cfg.grayscale.weight_r,
+        cfg.grayscale.weight_g,
+        cfg.grayscale.weight_b)
+    iris_signals = daug_split_8(iris_gray)
+    return EyeSplit(img, prev.pupil_center, prev.pupil_radius, prev.iris_radius, iris_signals)
+
+
 def eye_main(img: np.ndarray, cfg: ConfigEye, img_mode: ImgMode):
     stages = {
         ImgMode.RAW:          eye_raw,
@@ -93,6 +104,7 @@ def eye_main(img: np.ndarray, cfg: ConfigEye, img_mode: ImgMode):
         ImgMode.RADIUS_PUPIL: eye_radius_pupil,
         ImgMode.RADIUS_BOTH:  eye_radius_both,
         ImgMode.UNWRAPPED:    eye_unwrapped,
+        ImgMode.SPLIT:        eye_split,
     }
     if img_mode in stages:
         return stages[img_mode](img, cfg)
