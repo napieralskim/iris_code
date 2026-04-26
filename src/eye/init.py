@@ -56,7 +56,7 @@ def eye_radius_pupil(img: np.ndarray, cfg: ConfigEye) -> EyeRadiusPupil:
         "area": lambda mask: img_radius_by_area(mask),
     }
     if cfg.radius_pupil.method not in methods:
-        logger.fatal(f"eye_radius_pupil: Method `{cfg.center.method}` not supported.")
+        logger.fatal(f"eye_radius_pupil: Method `{cfg.radius_pupil.method}` not supported.")
         sys.exit(1)
     pupil_radius = methods[cfg.radius_pupil.method](prev.pupil_mask)
     return EyeRadiusPupil(prev.pupil_mask, prev.iris_mask, prev.pupil_center, pupil_radius)
